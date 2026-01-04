@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
         })
 
         // Group by employee
-        const byEmployee = employees.map(emp => {
+        const byEmployee = (employees as Array<{ employeeId: string, firstName: string, lastName: string, nickName: string | null }>).map(emp => {
             const ledgerEntries = allLedger.filter(l => l.employeeId === emp.employeeId)
             const totalMinutes = ledgerEntries.reduce((sum, l) => sum + l.minutesDelta, 0)
 
@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
                 totalMinutes,
                 totalHours: totalMinutes / 60,
                 totalDays: totalMinutes / 480,
-                entries: ledgerEntries.map(l => ({
+                entries: (ledgerEntries as any[]).map(l => ({
                     ledgerId: l.ledgerId,
                     minutesDelta: l.minutesDelta,
                     reason: l.reason,

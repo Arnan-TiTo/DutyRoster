@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
                 // If these are different Shift Slots under SAME Event Type ("LP"), we need to handle that.
                 // For now, let's group by Event Type, and append shift slot info if multiple slots exist.
 
-                const names = entry.assignments.map(a =>
+                const names = (entry.assignments as any[]).map(a =>
                     a.employee.nickName || a.employee.firstName
                 )
 

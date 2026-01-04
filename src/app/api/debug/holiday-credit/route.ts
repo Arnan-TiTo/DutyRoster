@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
             return l.createdAt >= start && l.createdAt < end
         })
 
-        const formatted = decemberLedger.map(l => ({
+        const formatted = (decemberLedger as any[]).map(l => ({
             id: l.ledgerId,
             employeeId: l.employeeId,
             minutesDelta: l.minutesDelta,

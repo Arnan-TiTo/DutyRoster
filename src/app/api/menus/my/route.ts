@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
             where: { userId },
             select: { roleId: true }
         })
-        const roleIds = userRoles.map(r => r.roleId)
+        const roleIds = (userRoles as Array<{ roleId: string }>).map(r => r.roleId)
 
         // 2. Get Permission from Roles (canView = true)
         const rolePermissions = await prisma.roleMenu.findMany({

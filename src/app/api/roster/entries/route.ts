@@ -144,7 +144,7 @@ export async function GET(req: NextRequest) {
       }
     })
 
-    const formatted = entries.map(entry => ({
+    const formatted = (entries as any[]).map(entry => ({
       id: entry.entryId,
       date: entry.entryDate.toISOString(),
       startTime: new Date(entry.startAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }),

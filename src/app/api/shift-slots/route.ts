@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     })
 
     return ok({
-      items: items.map((s) => ({
+      items: (items as Array<{ startTime: Date, endTime: Date, [key: string]: any }>).map((s) => ({
         ...s,
         startTime: timeToHHMM(s.startTime),
         endTime: timeToHHMM(s.endTime)

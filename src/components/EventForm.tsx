@@ -159,7 +159,7 @@ export default function EventForm({
     // Auto-set time on Shift Slot change
     useEffect(() => {
         if (!shiftSlotId) return
-        const slot = shiftSlots.find(x => x.shiftSlotId === shiftSlotId)
+        const slot = shiftSlots.find((x: typeof shiftSlots[0]) => x.shiftSlotId === shiftSlotId)
         if (slot && startAt) {
             // Keep the date part of startAt
             const datePart = startAt.split('T')[0]
@@ -289,7 +289,7 @@ export default function EventForm({
                         <label className="label">Staff Assignments ({employeeIds.length})</label>
                         <div className="mt-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-60 overflow-y-auto border border-white/10 rounded-xl2 p-2 bg-white/5">
                             {employees
-                                .filter(e => !unavailableIds.includes(e.employeeId) || employeeIds.includes(e.employeeId))
+                                .filter((e: typeof employees[0]) => !unavailableIds.includes(e.employeeId) || employeeIds.includes(e.employeeId))
                                 .map((e) => {
                                     const name = `${e.firstName} ${e.lastName} (${e.nickName || '-'})`
                                     const checked = employeeIds.includes(e.employeeId)

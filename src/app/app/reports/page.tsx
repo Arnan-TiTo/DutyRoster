@@ -190,7 +190,7 @@ export default function ReportsPage() {
                                             <td className="text-center border border-white/10 text-white/80">
                                                 {d.date.slice(8, 10)}
                                             </td>
-                                            <td className={`text-center border border-white/10 ${['Sat', 'Sun', 'ส.', 'อา.'].some(x => d.dayOfWeek.includes(x)) ? 'text-red-400' : 'text-white/60'}`}>
+                                            <td className={`text-center border border-white/10 ${['Sat', 'Sun', 'ส.', 'อา.'].some((x: string) => d.dayOfWeek.includes(x)) ? 'text-red-400' : 'text-white/60'}`}>
                                                 {d.dayOfWeek}
                                             </td>
                                             {rawDaily.columns.map((c: any) => {

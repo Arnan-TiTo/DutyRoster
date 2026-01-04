@@ -94,7 +94,7 @@ export function isStaff(user: SessionUser | null) {
 
 export function assertRole(user: SessionUser | null, allowed: string[]) {
   if (!user) throw new Error('UNAUTHORIZED')
-  const ok = user.roles.some((r) => allowed.includes(r))
+  const ok = user.roles.some((r: string) => allowed.includes(r))
   if (!ok) throw new Error('FORBIDDEN')
 }
 

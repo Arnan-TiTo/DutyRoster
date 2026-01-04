@@ -5,9 +5,9 @@ export async function getUserRoleCodes(userId: string): Promise<string[]> {
     where: { userId },
     include: { role: true }
   })
-  return rows.map((r) => r.role.roleCode)
+  return rows.map((r: typeof rows[0]) => r.role.roleCode)
 }
 
 export function hasAnyRole(roleCodes: string[], allowed: string[]) {
-  return roleCodes.some((r) => allowed.includes(r))
+  return roleCodes.some((r: string) => allowed.includes(r))
 }

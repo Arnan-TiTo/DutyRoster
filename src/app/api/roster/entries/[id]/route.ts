@@ -97,7 +97,7 @@ export async function GET(req: NextRequest, props: { params: Promise<{ id: strin
 
     if (!isAdmin) {
       if (!sess.employeeId) return bad(400, 'NO_EMPLOYEE_LINKED')
-      const okView = item.assignments.some((a) => a.employeeId === sess.employeeId)
+      const okView = item.assignments.some((a: typeof item.assignments[0]) => a.employeeId === sess.employeeId)
       if (!okView) return bad(403, 'FORBIDDEN')
     }
 

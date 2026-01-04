@@ -203,7 +203,7 @@ export default function UsersClient() {
                                 <label className="label">{t.users.employeeLink} (Optional)</label>
                                 <select className="input mt-1 w-full" value={employeeId} onChange={e => setEmployeeId(e.target.value)}>
                                     <option value="">-- No Employee --</option>
-                                    {employees.map(e => (
+                                    {employees.map((e: typeof employees[0]) => (
                                         <option key={e.employeeId} value={e.employeeId}>{e.firstName} {e.lastName} ({e.nickName})</option>
                                     ))}
                                 </select>
@@ -217,7 +217,7 @@ export default function UsersClient() {
                                         return (
                                             <button
                                                 key={r.roleId}
-                                                onClick={() => setSelectedRoleIds(prev => active ? prev.filter(x => x !== r.roleId) : [...prev, r.roleId])}
+                                                onClick={() => setSelectedRoleIds(prev => active ? prev.filter((x: string) => x !== r.roleId) : [...prev, r.roleId])}
                                                 className={`px-3 py-1 rounded-full text-sm border transition ${active ? 'bg-brand-500 border-brand-400 text-white' : 'border-white/20 hover:bg-white/10'}`}
                                             >
                                                 {r.roleName}

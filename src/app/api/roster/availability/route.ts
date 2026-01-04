@@ -69,8 +69,8 @@ export async function GET(req: NextRequest) {
         })
 
         const unavailableEmployeeIds = Array.from(new Set([
-            ...(assignments as Array<{ employeeId: string }>).map(a => a.employeeId),
-            ...(leaves as Array<{ employeeId: string }>).map(l => l.employeeId)
+            ...(assignments as Array<{ employeeId: string }>).map((a: { employeeId: string }) => a.employeeId),
+            ...(leaves as Array<{ employeeId: string }>).map((l: { employeeId: string }) => l.employeeId)
         ]))
 
         return ok({ unavailableEmployeeIds })

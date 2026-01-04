@@ -1,0 +1,49 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: duty_roster_db
+    environment:
+      POSTGRES_DB: duty_roster
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "Admin@9999"
+      TZ: Asia/Bangkok
+    ports:
+      - "5433:5432"
+    volumes:
+      - duty_roster_pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d duty_roster"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: duty_roster_app
+    environment:
+      # IMPORTANT: '@' in password must be URL-encoded as %40
+      DATABASE_URL: "postgresql://postgres:Admin%409999@db:5432/duty_roster?schema=duty"
+      AUTH_SECRET: "dev-secret-change-me"
+      AUTH_TTL_MINUTES: "120"
+
+      # for entrypoint wait + psql
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASSWORD: "Admin@9999"
+      DB_NAME: duty_roster
+
+      TZ: Asia/Bangkok
+      NODE_ENV: production
+      SEED_DEFAULT_PASSWORD: "Admin@9999"
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  duty_roster_pgdata:

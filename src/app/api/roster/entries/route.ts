@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
+import { Prisma } from '@prisma/client'
 import { requireApiSession } from '@/lib/auth'
 import { readJson, ok, bad, dateOnlyFromIsoLike } from '@/lib/api'
 
@@ -8,7 +9,7 @@ function overlaps(aStart: Date, aEnd: Date, bStart: Date, bEnd: Date) {
 }
 
 async function validateAssignments(
-  tx: typeof prisma,
+  tx: Prisma.TransactionClient,
   employeeIds: string[],
   startAt: Date,
   endAt: Date,
@@ -55,7 +56,7 @@ async function validateAssignments(
   }
 }
 
-async function applyHolidayCredit(tx: typeof prisma, entryId: string, employeeIds: string[], entryDate: Date, startAt: Date, endAt: Date) {
+async function applyHolidayCredit(tx: Prisma.TransactionClient, entryId: string, employeeIds: string[], entryDate: Date, startAt: Date, endAt: Date) {
   // Check if this date is a company holiday
   const hol = await tx.companyHoliday.findFirst({
     where: {
@@ -192,7 +193,7 @@ export async function POST(req: NextRequest) {
     const et = await prisma.eventType.findUnique({ where: { eventTypeId } })
     if (!et || !et.isActive) return bad(400, 'Invalid eventType')
 
-    const item = await prisma.$transaction(async (tx: any) => {
+    const item = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       await validateAssignments(tx, employeeIds, startAt, endAt, entryDate, null, shiftSlotId)
 
       const created = await tx.rosterEntry.create({

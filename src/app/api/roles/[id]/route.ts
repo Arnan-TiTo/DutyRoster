@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
+import { Prisma } from '@prisma/client'
 import { requireApiSession } from '@/lib/auth'
 import { ok, bad } from '@/lib/api'
 
@@ -36,7 +37,7 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
         const { roleCode, roleName, permissions } = body // permissions: [{ menuId, canView, canEdit }]
 
         // Transaction
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             // Update Role details
             await tx.role.update({
                 where: { roleId: id },

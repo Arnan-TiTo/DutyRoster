@@ -1,6 +1,7 @@
 
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
+import { Prisma } from '@prisma/client'
 import { requireApiSession } from '@/lib/auth'
 import { ok, bad } from '@/lib/api'
 
@@ -22,7 +23,7 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
             return bad(400, 'ONLY_CANCELED_OR_REJECTED_CAN_BE_DELETED')
         }
 
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             // Delete any associated holiday credit ledger entries (just in case they weren't deleted during cancel)
             await tx.holidayCreditLedger.deleteMany({ where: { leaveRequestId: params.id } })
             // Delete the leave request

@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
+import { Prisma } from '@prisma/client'
 import { requireApiSession } from '@/lib/auth'
 import { ok, bad } from '@/lib/api'
 import bcrypt from 'bcryptjs'
@@ -23,7 +24,7 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
         }
 
         // Transaction for roles update if provided
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             await tx.user.update({
                 where: { userId: id },
                 data

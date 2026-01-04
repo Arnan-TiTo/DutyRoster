@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
+import { Prisma } from '@prisma/client'
 import { requireApiSession } from '@/lib/auth'
 import { readJson, ok, bad, dateOnlyFromIsoLike } from '@/lib/api'
 
@@ -8,7 +9,7 @@ function overlaps(aStart: Date, aEnd: Date, bStart: Date, bEnd: Date) {
 }
 
 async function validateAssignments(
-  tx: any,
+  tx: Prisma.TransactionClient,
   employeeIds: string[],
   startAt: Date,
   endAt: Date,
@@ -50,7 +51,7 @@ async function validateAssignments(
   }
 }
 
-async function applyHolidayCredit(tx: any, entryId: string, employeeIds: string[], entryDate: Date, startAt: Date, endAt: Date) {
+async function applyHolidayCredit(tx: Prisma.TransactionClient, entryId: string, employeeIds: string[], entryDate: Date, startAt: Date, endAt: Date) {
   // Check if this date is a company holiday
   const hol = await tx.companyHoliday.findFirst({
     where: {
@@ -141,7 +142,7 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
     const et = await prisma.eventType.findUnique({ where: { eventTypeId } })
     if (!et || !et.isActive) return bad(400, 'Invalid eventType')
 
-    const item = await prisma.$transaction(async (tx) => {
+    const item = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       await validateAssignments(tx, employeeIds, startAt, endAt, entryDate, params.id, shiftSlotId)
 
       const updated = await tx.rosterEntry.update({
@@ -178,7 +179,7 @@ export async function DELETE(req: NextRequest, props: { params: Promise<{ id: st
     const canEdit = sess.roles.includes('ADMIN') || sess.roles.includes('SUPERVISOR')
     if (!canEdit) return bad(403, 'FORBIDDEN')
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       await tx.holidayCreditLedger.deleteMany({ where: { entryId: params.id } })
       await tx.rosterAssignment.deleteMany({ where: { entryId: params.id } })
       await tx.rosterEntry.delete({ where: { entryId: params.id } })

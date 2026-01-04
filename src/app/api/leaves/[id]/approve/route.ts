@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
+import { Prisma } from '@prisma/client'
 import { requireApiSession } from '@/lib/auth'
 import { ok, bad } from '@/lib/api'
 
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ id: stri
     })
     if (hasShift) return bad(400, 'Employee already has roster entries in this date range')
 
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       await tx.leaveRequest.update({
         where: { leaveRequestId: leave.leaveRequestId },
         data: {

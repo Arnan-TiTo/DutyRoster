@@ -48,8 +48,8 @@ export async function GET(req: NextRequest) {
 
         // Group by employee
         const byEmployee = (employees as Array<{ employeeId: string, firstName: string, lastName: string, nickName: string | null }>).map(emp => {
-            const ledgerEntries = allLedger.filter(l => l.employeeId === emp.employeeId)
-            const totalMinutes = ledgerEntries.reduce((sum, l) => sum + l.minutesDelta, 0)
+            const ledgerEntries = allLedger.filter((l: typeof allLedger[0]) => l.employeeId === emp.employeeId)
+            const totalMinutes = ledgerEntries.reduce((sum: number, l: typeof allLedger[0]) => sum + l.minutesDelta, 0)
 
             return {
                 employeeId: emp.employeeId,
@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
                 totalMinutes,
                 totalHours: totalMinutes / 60,
                 totalDays: totalMinutes / 480,
-                entries: (ledgerEntries as any[]).map(l => ({
+                entries: (ledgerEntries as any[]).map((l: any) => ({
                     ledgerId: l.ledgerId,
                     minutesDelta: l.minutesDelta,
                     reason: l.reason,
@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
         return ok({
             month,
             totalLedgerEntries: allLedger.length,
-            employees: byEmployee.filter(e => e.ledgerCount > 0)
+            employees: byEmployee.filter((e: typeof byEmployee[0]) => e.ledgerCount > 0)
         })
     } catch (e: any) {
         console.error('Debug all error:', e)

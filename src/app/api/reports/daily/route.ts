@@ -48,10 +48,10 @@ export async function GET(req: NextRequest) {
             const dateStr = current.toISOString().slice(0, 10)
 
             // Find entries for this day
-            const dayEntries = entries.filter(e => e.entryDate.toISOString().slice(0, 10) === dateStr)
+            const dayEntries = entries.filter((e: typeof entries[0]) => e.entryDate.toISOString().slice(0, 10) === dateStr)
 
             // Find holiday
-            const holiday = holidays.find(h => h.holidayDate.toISOString().slice(0, 10) === dateStr)
+            const holiday = holidays.find((h: typeof holidays[0]) => h.holidayDate.toISOString().slice(0, 10) === dateStr)
 
             // Group by Event Type
             const rowData: any = {

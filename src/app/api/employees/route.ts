@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
     if (simple) {
       return ok({
-        items: items.map((e) => ({
+        items: items.map((e: typeof items[0]) => ({
           employeeId: e.employeeId,
           empCode: e.empCode,
           firstName: e.firstName,

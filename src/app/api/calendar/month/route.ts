@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
           }
         }
       })
-      entries = assigns.map((a) => a.entry)
+      entries = (assigns as Array<{ entry: any }>).map((a) => a.entry)
     }
 
     const items = entries.map((e) => {

@@ -28,7 +28,7 @@ export default function ReportsPage() {
                     setData(d.items || [])
                     const types = new Set<string>()
                     d.items?.forEach((i: any) => {
-                        Object.keys(i.shiftCounts).forEach(k => types.add(k))
+                        Object.keys(i.shiftCounts).forEach((k: string) => types.add(k))
                     })
                     setAllShiftTypes(Array.from(types).sort())
                 }

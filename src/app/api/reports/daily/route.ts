@@ -63,12 +63,12 @@ export async function GET(req: NextRequest) {
             }
 
             // Init buckets
-            eventTypes.forEach(et => {
+            eventTypes.forEach((et: typeof eventTypes[0]) => {
                 rowData.assignments[et.eventTypeId] = []
             })
 
             // Fill buckets
-            dayEntries.forEach(entry => {
+            dayEntries.forEach((entry: typeof entries[0]) => {
                 // If we also want to group by Shift Slot (e.g. LP 08:30 vs LP 10:00), we might need deeper nesting.
                 // The user's image shows "LP 08:30" and "LP 10:00" as separate columns.
                 // If these are different Shift Slots under SAME Event Type ("LP"), we need to handle that.

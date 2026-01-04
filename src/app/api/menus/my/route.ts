@@ -33,10 +33,10 @@ export async function GET(req: NextRequest) {
         const allowed = new Set<string>()
 
         // Add role-based
-        rolePermissions.forEach(p => allowed.add(p.menuId))
+        rolePermissions.forEach((p: typeof rolePermissions[0]) => allowed.add(p.menuId))
 
         // Apply Overrides
-        overrides.forEach(o => {
+        overrides.forEach((o: typeof overrides[0]) => {
             if (o.allowView === true) allowed.add(o.menuId)
             else if (o.allowView === false) allowed.delete(o.menuId)
         })

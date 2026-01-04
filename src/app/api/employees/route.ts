@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db'
+import { Prisma } from '@prisma/client'
 import { requireApiSession } from '@/lib/auth'
 import { readJson, ok, bad, asBool } from '@/lib/api'
 
@@ -72,7 +73,7 @@ export async function POST(req: NextRequest) {
       if (dup) return bad(400, `Username '${uUsername}' already exists`)
     }
 
-    const item = await prisma.$transaction(async (tx) => {
+    const item = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Create Employee
       const emp = await tx.employee.create({
         data: {

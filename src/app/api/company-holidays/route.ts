@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
       where: Object.keys(where).length ? where : undefined,
       orderBy: [{ holidayDate: 'asc' }]
     })
-    return ok({ items: items.map((h) => ({ ...h, holidayDate: h.holidayDate.toISOString().slice(0,10) })) })
+    return ok({ items: (items as Array<{ holidayDate: Date, [key: string]: any }>).map((h) => ({ ...h, holidayDate: h.holidayDate.toISOString().slice(0, 10) })) })
   } catch (e: any) {
     return bad(500, 'SERVER_ERROR', String(e?.message || e))
   }

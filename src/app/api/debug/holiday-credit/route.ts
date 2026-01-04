@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
         const end = new Date(Date.UTC(2026, 0, 1))    // Jan 1, 2026
 
         // Filter for December 2025
-        const decemberLedger = ledger.filter(l => {
+        const decemberLedger = ledger.filter((l: typeof ledger[0]) => {
             if (l.entry) {
                 return l.entry.entryDate >= start && l.entry.entryDate < end
             }
@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
             return l.createdAt >= start && l.createdAt < end
         })
 
-        const formatted = (decemberLedger as any[]).map(l => ({
+        const formatted = (decemberLedger as any[]).map((l: any) => ({
             id: l.ledgerId,
             employeeId: l.employeeId,
             minutesDelta: l.minutesDelta,
@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
             leaveType: l.leaveRequest?.leaveType?.leaveName
         }))
 
-        const totalMinutes = decemberLedger.reduce((sum, l) => sum + l.minutesDelta, 0)
+        const totalMinutes = decemberLedger.reduce((sum: number, l: typeof decemberLedger[0]) => sum + l.minutesDelta, 0)
 
         return ok({
             staffId: staff.employeeId,

@@ -5,10 +5,10 @@ export async function GET() {
     try {
         const session = await getSession()
         if (!session) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+            return NextResponse.json({ ok: true, session: null }, { status: 200 })
         }
-        return NextResponse.json(session)
+        return NextResponse.json({ ok: true, session })
     } catch (error) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        return NextResponse.json({ ok: false, error: 'Internal error' }, { status: 500 })
     }
 }

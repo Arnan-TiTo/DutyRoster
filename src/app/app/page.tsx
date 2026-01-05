@@ -13,12 +13,12 @@ export default function AppHome() {
     async function loadSession() {
       try {
         const res = await fetch('/api/auth/session')
-        if (!res.ok) {
+        const data = await res.json()
+        if (!res.ok || !data.ok || !data.session) {
           router.push('/login')
           return
         }
-        const data = await res.json()
-        setRoles(data.roles || [])
+        setRoles(data.session.roles || [])
       } catch (err) {
         router.push('/login')
       } finally {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { useTranslation } from '@/lib/useTranslation'
@@ -12,6 +12,30 @@ export default function LoginPage() {
   const [password, setPassword] = useState('Admin@9999')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [checking, setChecking] = useState(true)
+
+  useEffect(() => {
+    // Check if already logged in
+    async function checkSession() {
+      try {
+        const res = await fetch('/api/auth/session')
+        if (res.ok) {
+          const data = await res.json()
+          if (data.ok && data.session) {
+            // Already logged in, redirect to app
+            router.push('/app')
+            return
+          }
+        }
+        // Not logged in (401, null session, or error) - show form
+      } catch (err) {
+        // Error checking session - show form anyway
+      } finally {
+        setChecking(false)
+      }
+    }
+    checkSession()
+  }, [router])
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -32,6 +56,15 @@ export default function LoginPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Show nothing while checking (very brief)
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-white/50">Loading...</div>
+      </div>
+    )
   }
 
   return (

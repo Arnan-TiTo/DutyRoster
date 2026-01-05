@@ -15,12 +15,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     async function checkSession() {
       try {
         const res = await fetch('/api/auth/session')
-        if (!res.ok) {
+        const data = await res.json()
+        if (!res.ok || !data.ok || !data.session) {
           router.push('/login')
           return
         }
-        const data = await res.json()
-        setSession(data)
+        setSession(data.session)
       } catch (err) {
         router.push('/login')
       } finally {

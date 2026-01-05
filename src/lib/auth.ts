@@ -61,9 +61,10 @@ export async function getSession(): Promise<SessionUser | null> {
 }
 
 export function clearSession(res: NextResponse) {
+  const isSecure = process.env.SECURE_COOKIES === 'true' || (process.env.NODE_ENV === 'production' && process.env.SECURE_COOKIES !== 'false')
   res.cookies.set(COOKIE_NAME, '', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isSecure,
     sameSite: 'lax',
     path: '/',
     maxAge: 0
@@ -71,9 +72,10 @@ export function clearSession(res: NextResponse) {
 }
 
 export function setSession(res: NextResponse, token: string) {
+  const isSecure = process.env.SECURE_COOKIES === 'true' || (process.env.NODE_ENV === 'production' && process.env.SECURE_COOKIES !== 'false')
   res.cookies.set(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isSecure,
     sameSite: 'lax',
     path: '/',
     maxAge: Number(process.env.AUTH_TTL_MINUTES || 120) * 60

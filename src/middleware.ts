@@ -32,7 +32,8 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
-  if (pathname.startsWith('/api/auth/login')) return NextResponse.next()
+  // Allow all auth API endpoints (login, logout, session check, etc.)
+  if (pathname.startsWith('/api/auth/')) return NextResponse.next()
 
   const needAuth = pathname.startsWith('/app') || pathname.startsWith('/api')
   if (!needAuth) return NextResponse.next()

@@ -1,6 +1,9 @@
 -- Run this AFTER `prisma migrate deploy` (or migrate dev)
 -- Adds overlap protection (tstzrange exclusion constraint) as per project plan.
 
+-- Enable btree_gist extension for text operator class in GIST indexes
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+
 CREATE TABLE IF NOT EXISTS public.employee_timeblocks (
   block_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   employee_id text NOT NULL REFERENCES public.employees(employee_id) ON DELETE CASCADE,

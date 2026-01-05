@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { LanguageProvider } from '@/lib/LanguageContext'
+import { Providers } from './providers'
 
 export const metadata: Metadata = {
   title: 'Duty Roster',
@@ -15,9 +15,9 @@ export default function RootLayout({
   return (
     <html lang="th">
       <body>
-        <LanguageProvider>
+        <Providers>
           {children}
-        </LanguageProvider>
+        </Providers>
       </body>
     </html>
   )

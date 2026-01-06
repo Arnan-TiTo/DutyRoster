@@ -19,11 +19,11 @@ for i in {1..90}; do
 done
 
 echo "Prisma generate..."
-npx prisma generate
+npx prisma@6.0.0 generate
 
 # Demo-friendly: apply schema without requiring migrations.
 echo "Prisma db push..."
-npx prisma db push
+npx prisma@6.0.0 db push
 
 # Optional (project plan): timeblocks + exclusion constraint hard-rule.
 if [ -f "./scripts/post_migrate.sql" ]; then

@@ -18,8 +18,9 @@ for i in {1..90}; do
   sleep 1
 done
 
-echo "Prisma generate..."
-npx prisma@6.0.0 generate
+# Prisma generate is done in build time.
+# echo "Prisma generate..."
+# npx prisma@6.0.0 generate
 
 # Demo-friendly: apply schema without requiring migrations.
 echo "Prisma db push..."

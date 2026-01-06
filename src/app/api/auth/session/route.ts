@@ -12,3 +12,4 @@ export async function GET() {
         return NextResponse.json({ ok: false, error: 'Internal error' }, { status: 500 })
     }
 }
+

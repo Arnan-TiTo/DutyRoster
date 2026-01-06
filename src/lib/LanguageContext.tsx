@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import React, { createContext, useContext, useState, ReactNode } from 'react'
 
 type Language = 'th' | 'en'
 
@@ -14,19 +14,8 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export function LanguageProvider({ children }: { children: ReactNode }) {
     const [language, setLanguageState] = useState<Language>('th')
 
-    useEffect(() => {
-        // Load language from localStorage on mount
-        const saved = localStorage.getItem('language') as Language
-        if (saved === 'th' || saved === 'en') {
-            setLanguageState(saved)
-        }
-    }, [])
-
     const setLanguage = (lang: Language) => {
         setLanguageState(lang)
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('language', lang)
-        }
     }
 
     return (
@@ -39,7 +28,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 export function useLanguage() {
     const context = useContext(LanguageContext)
 
-    // Return default Thai language if not within provider (e.g., login page)
+    // Return default Thai language if not within provider
     if (!context) {
         return {
             language: 'th' as const,

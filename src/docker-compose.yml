@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: "Admin@9999"
       TZ: Asia/Bangkok
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - duty_roster_pgdata:/var/lib/postgresql/data
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
@@ -25,7 +25,7 @@ services:
     container_name: duty_roster_app
     environment:
       # IMPORTANT: '@' in password must be URL-encoded as %40
-      DATABASE_URL: "postgresql://postgres:Admin%409999@db:5432/duty_roster?schema=duty"
+      DATABASE_URL: "postgresql://postgres:Admin%409999@db:5432/duty_roster?schema=public"
       AUTH_SECRET: "dev-secret-change-me"
       AUTH_TTL_MINUTES: "120"
 

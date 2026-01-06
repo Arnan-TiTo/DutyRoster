@@ -15,6 +15,11 @@ export default function LoginPage() {
   const [checking, setChecking] = useState(true)
 
   useEffect(() => {
+    // Safety timeout - show form after 2s regardless
+    const timer = setTimeout(() => {
+      setChecking(false)
+    }, 2000)
+
     // Check if already logged in
     async function checkSession() {
       try {
@@ -31,10 +36,13 @@ export default function LoginPage() {
       } catch (err) {
         // Error checking session - show form anyway
       } finally {
+        clearTimeout(timer)
         setChecking(false)
       }
     }
     checkSession()
+
+    return () => clearTimeout(timer)
   }, [router])
 
   async function onSubmit(e: React.FormEvent) {
@@ -62,7 +70,7 @@ export default function LoginPage() {
   if (checking) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-white/50">Loading...</div>
+        <div className="text-white/50">Verifying Session...</div>
       </div>
     )
   }

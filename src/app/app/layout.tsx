@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import Sidebar from '@/components/Sidebar'
 import Topbar from '@/components/Topbar'
 
@@ -33,6 +33,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' })
     window.location.href = '/login'
+  }
+
+  const pathname = usePathname()
+  const isPublic = pathname === '/login' || pathname === '/simple-login'
+
+  if (isPublic) {
+    return <>{children}</>
   }
 
   if (loading || !session) {

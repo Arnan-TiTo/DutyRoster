@@ -22,6 +22,9 @@ WORKDIR /app
 RUN apt-get update \
   && apt-get install -y --no-install-recommends postgresql-client ca-certificates \
   && rm -rf /var/lib/apt/lists/*
+  
+# Install bcryptjs for the seed script
+RUN npm install bcryptjs
 
 ENV NODE_ENV=production
 

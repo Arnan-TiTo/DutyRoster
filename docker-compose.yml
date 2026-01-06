@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: Admin@9999
-      POSTGRES_DB: dutyroster
+      POSTGRES_DB: duty_roster
     ports:
       - '5432:5432'
     volumes:

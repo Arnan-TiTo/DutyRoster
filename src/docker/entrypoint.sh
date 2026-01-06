@@ -24,7 +24,7 @@ done
 
 # Demo-friendly: apply schema without requiring migrations.
 echo "Prisma db push..."
-npx prisma@6.0.0 db push
+npx prisma@6.0.0 db push --skip-generate
 
 # Optional (project plan): timeblocks + exclusion constraint hard-rule.
 if [ -f "./scripts/post_migrate.sql" ]; then
@@ -36,4 +36,4 @@ echo "Seeding demo data..."
 node ./prisma/seed.mjs
 
 echo "Starting Next.js..."
-npm run start
+node server.js

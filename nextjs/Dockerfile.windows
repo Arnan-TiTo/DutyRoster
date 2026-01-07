@@ -1,0 +1,46 @@
+# escape=`
+# Escape character for Windows path handling
+
+# Use Node.js 20 on Windows Server Core LTSC 2022
+FROM mcr.microsoft.com/windows/servercore:ltsc2022 as installer
+
+# Install Node.js
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+ENV NODE_VERSION 20.11.0
+RUN Invoke-WebRequest -OutFile nodejs.zip -Uri "https://nodejs.org/dist/v$env:NODE_VERSION/node-v$env:NODE_VERSION-win-x64.zip"; `
+    Expand-Archive nodejs.zip -DestinationPath C:\; `
+    Rename-Item "C:\node-v$env:NODE_VERSION-win-x64" C:\nodejs; `
+    Remove-Item nodejs.zip
+
+FROM mcr.microsoft.com/windows/servercore:ltsc2022
+
+# Copy Node.js from installer
+COPY --from=installer C:\nodejs C:\nodejs
+RUN setx /M PATH "%PATH%;C:\nodejs"
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json package-lock.json ./
+
+# Install dependencies
+RUN npm ci
+
+
+# Copy source code
+COPY . .
+
+# Generate Prisma Client
+RUN npx prisma generate
+
+# Build Next.js app
+RUN npm run build
+
+# Expose port (Next.js default)
+EXPOSE 3000
+
+# Set production environment
+ENV NODE_ENV=production
+
+# Start the application
+CMD ["npm", "run", "start"]

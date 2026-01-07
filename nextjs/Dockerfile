@@ -1,0 +1,104 @@
+# # Duty Roster - Next.js + Prisma + Postgres
+
+# FROM node:20-bookworm-slim AS deps
+# WORKDIR /app
+# COPY package.json package-lock.json* ./
+# # If lockfile doesn't exist, use npm install. In this template we rely on install.
+# RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+# FROM node:20-bookworm-slim AS builder
+# WORKDIR /app
+# COPY --from=deps /app/node_modules ./node_modules
+# COPY . . 
+# # Generate Prisma Client
+# RUN npx prisma generate
+# # Build Next.js app
+# RUN npm run build
+
+# FROM node:20-bookworm-slim AS runner
+# WORKDIR /app
+
+# # Install postgres client for pg_isready/psql used in entrypoint
+# RUN apt-get update \
+#   && apt-get install -y --no-install-recommends postgresql-client ca-certificates \
+#   && rm -rf /var/lib/apt/lists/*
+  
+# # Install bcryptjs for the seed script
+# RUN npm install bcryptjs
+
+# ENV NODE_ENV=production
+
+# # Copy runtime assets
+# # Copy runtime assets (standalone)
+# COPY --from=builder /app/.next/standalone ./
+# COPY --from=builder /app/.next/static ./.next/static
+# COPY --from=builder /app/public ./public
+# COPY --from=builder /app/prisma ./prisma
+# COPY --from=builder /app/scripts ./scripts
+# COPY --from=builder /app/.next/standalone ./
+# COPY --from=builder /app/.next/static ./.next/static
+
+
+
+
+# COPY docker/entrypoint.sh ./entrypoint.sh
+# RUN chmod +x ./entrypoint.sh
+
+# EXPOSE 3000
+
+# CMD ["./entrypoint.sh"]
+
+
+# Duty Roster - Next.js + Prisma + Postgres
+
+# FROM node:20-bookworm-slim AS deps
+# WORKDIR /app
+# COPY package.json package-lock.json* ./
+# # If lockfile doesn't exist, use npm install. In this template we rely on install.
+# RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+# FROM node:20-bookworm-slim AS builder
+# WORKDIR /app
+# COPY --from=deps /app/node_modules ./node_modules
+# COPY . .
+# # Generate Prisma Client
+# RUN npx prisma generate
+# # Build Next.js app
+# RUN npm run build
+
+# FROM node:20-bookworm-slim AS runner
+# WORKDIR /app
+
+# # Install postgres client for pg_isready/psql used in entrypoint
+# RUN apt-get update \
+#   && apt-get install -y --no-install-recommends postgresql-client ca-certificates \
+#   && rm -rf /var/lib/apt/lists/*
+  
+# # Install bcryptjs for the seed script
+# RUN npm install bcryptjs
+
+# ENV NODE_ENV=production
+
+# # Copy runtime assets (standalone)
+# COPY --from=builder /app/.next/standalone ./
+# COPY --from=builder /app/.next/static ./.next/static
+# COPY --from=builder /app/public ./public
+# COPY --from=builder /app/prisma ./prisma
+# COPY --from=builder /app/scripts ./scripts
+# COPY --from=builder /app/.env ./.env
+
+# # Copy entrypoint script, fix Windows line endings, and make executable
+# COPY docker/entrypoint.sh ./entrypoint.sh
+# RUN sed -i 's/\r$//' ./entrypoint.sh && chmod +x ./entrypoint.sh
+
+# EXPOSE 3000
+
+
+FROM node:24
+WORKDIR /app
+COPY . .
+
+ENV NODE_ENV=production
+
+EXPOSE 3000
+CMD ["npm", "run", "dev"]

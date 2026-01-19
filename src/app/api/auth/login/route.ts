@@ -14,10 +14,16 @@ export async function POST(req: NextRequest) {
   const user = await prisma.user.findFirst({
     where: { username, isActive: true }
   })
-  if (!user) return bad(401, 'Invalid credentials')
+  if (!user) {
+    console.log('Login failed: user not found', username)
+    return bad(401, 'Invalid credentials')
+  }
 
   const okPwd = await bcrypt.compare(password, user.passwordHash)
-  if (!okPwd) return bad(401, 'Invalid credentials')
+  if (!okPwd) {
+    console.log('Login failed: password mismatch for', username)
+    return bad(401, 'Invalid credentials')
+  }
 
   const roles = await getUserRoleCodes(user.userId)
   const token = await signSession({

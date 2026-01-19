@@ -9,7 +9,7 @@ export default function LoginPage() {
   const router = useRouter()
   const t = useTranslation()
   const [username, setUsername] = useState('admin')
-  const [password, setPassword] = useState('Admin@9999')
+  const [password, setPassword] = useState('admin9999')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [checking, setChecking] = useState(true)

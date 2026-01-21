@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   CalendarDays, Users, Settings, ClipboardList, ShieldCheck, PartyPopper, Clock, LogOut,
-  CalendarOff, UserCog, UserCircle, Menu, FileText, X, Briefcase
+  CalendarOff, UserCog, UserCircle, Menu, FileText, X, Briefcase, MapPin
 } from 'lucide-react'
 import { useTranslation } from '@/lib/useTranslation'
 import LanguageSwitch from './LanguageSwitch'
@@ -81,6 +81,12 @@ export default function Sidebar({
           href: '/app/shift-slots',
           label: t.sidebar.shiftSlots,
           icon: <Clock size={16} />,
+          show: () => isAdmin
+        },
+        {
+          href: '/app/locations',
+          label: 'Locations',
+          icon: <MapPin size={16} />,
           show: () => isAdmin
         },
         {

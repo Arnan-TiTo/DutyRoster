@@ -62,12 +62,32 @@ async function main() {
 
   const empStaff = await prisma.employee.upsert({
     where: { empCode: 'E003' },
-    update: { firstName: 'Staff', lastName: 'User', nickName: 'Staff', teamId: team.teamId, isActive: true },
-    create: { empCode: 'E003', firstName: 'Staff', lastName: 'User', nickName: 'Staff', teamId: team.teamId, isActive: true }
+    update: { firstName: 'Staff', lastName: 'User', nickName: 'Staff', roleTitle: 'Staff', teamId: team.teamId, isActive: true },
+    create: { empCode: 'E003', firstName: 'Staff', lastName: 'User', nickName: 'Staff', roleTitle: 'Staff', teamId: team.teamId, isActive: true }
   })
 
+  // Additional Staff members (E004-E010 for total 8 Staff)
+  const staffMembers = [
+    { code: 'E004', firstName: 'Staff 1', lastName: 'Demo', nickName: 'S1' },
+    { code: 'E005', firstName: 'Staff 2', lastName: 'Demo', nickName: 'S2' },
+    { code: 'E006', firstName: 'Staff 3', lastName: 'Demo', nickName: 'S3' },
+    { code: 'E007', firstName: 'Staff 4', lastName: 'Demo', nickName: 'S4' },
+    { code: 'E008', firstName: 'Staff 5', lastName: 'Demo', nickName: 'S5' },
+    { code: 'E009', firstName: 'Staff 6', lastName: 'Demo', nickName: 'S6' },
+    { code: 'E010', firstName: 'Staff 7', lastName: 'Demo', nickName: 'S7' },
+    { code: 'E011', firstName: 'Staff 8', lastName: 'Demo', nickName: 'S8' }
+  ]
+
+  for (const s of staffMembers) {
+    await prisma.employee.upsert({
+      where: { empCode: s.code },
+      update: { firstName: s.firstName, lastName: s.lastName, nickName: s.nickName, roleTitle: 'Staff', isActive: true },
+      create: { empCode: s.code, firstName: s.firstName, lastName: s.lastName, nickName: s.nickName, roleTitle: 'Staff', isActive: true }
+    })
+  }
+
   // Users (login)
-  const defaultPwd = process.env.SEED_DEFAULT_PASSWORD || 'Admin@9999'
+  const defaultPwd = process.env.SEED_DEFAULT_PASSWORD || 'Admin9999'
 
   const admin = await upsertUser({
     username: 'admin',
@@ -130,9 +150,10 @@ async function main() {
 
   // Shift Slots
   const slots = [
-    { code: 'MORN', name: 'Morning', start: '09:00', end: '17:00', min: 0, max: 0, sort: 1 },
-    { code: 'EVE', name: 'Evening', start: '17:00', end: '23:00', min: 0, max: 0, sort: 2 },
-    { code: 'NIGHT', name: 'Night', start: '23:00', end: '09:00', min: 0, max: 0, sort: 3 }
+    { code: 'MORN', name: 'Morning', start: '09:00', end: '18:00', min: 0, max: 0, sort: 1 },
+    { code: 'EVENT1', name: 'Event1', start: '10:00', end: '19:00', min: 0, max: 0, sort: 2 },
+    { code: 'EVENT2', name: 'Event2', start: '13:00', end: '22:00', min: 0, max: 0, sort: 3 },
+    { code: 'NIGHT', name: 'Night', start: '23:00', end: '09:00', min: 0, max: 0, sort: 4 }
   ]
   for (const s of slots) {
     await prisma.shiftSlot.upsert({
@@ -156,6 +177,21 @@ async function main() {
         sortOrder: s.sort,
         isActive: true
       }
+    })
+  }
+
+  // Locations
+  const locations = [
+    { code: 'Loc001', name: 'สยาม', sort: 1, shifts: 1, staff: 1 },
+    { code: 'Loc002', name: 'บางนา', sort: 2, shifts: 1, staff: 1 },
+    { code: 'Loc003', name: 'เมืองทอง', sort: 3, shifts: 1, staff: 1 },
+    { code: 'SHOWROOM', name: 'โชว์รูม/ออฟฟิศ', sort: 99, shifts: 1, staff: 5 }
+  ]
+  for (const loc of locations) {
+    await prisma.location.upsert({
+      where: { locationCode: loc.code },
+      update: { locationName: loc.name, sortOrder: loc.sort, shiftsPerDay: loc.shifts, staffPerShift: loc.staff, isActive: true },
+      create: { locationCode: loc.code, locationName: loc.name, sortOrder: loc.sort, shiftsPerDay: loc.shifts, staffPerShift: loc.staff, isActive: true }
     })
   }
 

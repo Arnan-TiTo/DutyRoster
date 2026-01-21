@@ -213,10 +213,12 @@ model RosterEntry {
   createdBy   String?  @map("created_by")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  locationId  String?  @map("location_id")
 
   eventType EventType @relation(fields: [eventTypeId], references: [eventTypeId])
   shiftSlot ShiftSlot? @relation(fields: [shiftSlotId], references: [shiftSlotId])
   creator   User? @relation(fields: [createdBy], references: [userId])
+  location  Location? @relation(fields: [locationId], references: [locationId])
 
   assignments RosterAssignment[]
   holidayLedger HolidayCreditLedger[]
@@ -263,4 +265,20 @@ model Setting {
   settingValue String @map("setting_value")
 
   @@map("settings")
+}
+
+model Location {
+  locationId   String   @id @default(uuid()) @map("location_id")
+  locationCode String?  @unique @map("location_code")
+  locationName String   @map("location_name")
+  shiftsPerDay Int      @default(1) @map("shifts_per_day")
+  staffPerShift Int     @default(1) @map("staff_per_shift")
+  isActive     Boolean  @default(true) @map("is_active")
+  sortOrder    Int      @default(0) @map("sort_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+
+  rosterEntries RosterEntry[]
+
+  @@map("locations")
 }

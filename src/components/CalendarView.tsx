@@ -22,6 +22,8 @@ export default function CalendarView({ roles }: { roles: string[] }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [active, setActive] = useState<CalEvent | null>(null)
+  const [currentMonth, setCurrentMonth] = useState('')
+  const [runningRR, setRunningRR] = useState(false)
 
   async function load(monthIso: string) {
     setLoading(true)
@@ -41,8 +43,31 @@ export default function CalendarView({ roles }: { roles: string[] }) {
   useEffect(() => {
     const now = new Date()
     const m = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+    setCurrentMonth(m)
     load(m)
   }, [])
+
+  async function handleRoundRobin() {
+    if (!currentMonth) return
+    if (!confirm(`ระบบจะล้างข้อมูล Event เดิมของเดือน ${currentMonth} และสร้างตารางใหม่:\n- 3 สถานที่ต่อวัน\n- 2 กะต่อสถานที่ (10:00-19:00, 13:00-21:00)\n- จัดพนักงาน Staff 8 ท่านให้เท่าเทียมกัน\nยืนยันการดำเนินการ?`)) return
+
+    setRunningRR(true)
+    try {
+      const res = await fetch('/api/roster/round-robin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ month: currentMonth })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || 'Round Robin failed')
+      alert(`ดำเนินการเสร็จสิ้น: สร้างการจัดเวรใหม่ ${data.assignmentsCreated} รายการ`)
+      load(currentMonth)
+    } catch (e: any) {
+      alert(e.message)
+    } finally {
+      setRunningRR(false)
+    }
+  }
 
   const headerToolbar = useMemo(
     () => ({
@@ -60,7 +85,16 @@ export default function CalendarView({ roles }: { roles: string[] }) {
           <div className="text-lg font-semibold">Calendar</div>
           <div className="text-white/70 text-sm">ดูตารางเวร/กิจกรรมแบบ Month/Week/Day</div>
         </div>
-        <div className="text-xs text-white/60">
+        <div className="text-xs text-white/60 flex items-center gap-3">
+          {canEdit && (
+            <button
+              onClick={handleRoundRobin}
+              disabled={runningRR}
+              className="btn-primary py-1 px-3 text-xs flex items-center gap-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 border-none"
+            >
+              {runningRR ? 'กำลังประมวลผล...' : 'Round Robin'}
+            </button>
+          )}
           {canEdit ? 'คุณสามารถสร้าง/จัดเวรได้' : 'คุณเห็นเฉพาะรายการของคุณ'}
         </div>
       </div>
@@ -85,6 +119,7 @@ export default function CalendarView({ roles }: { roles: string[] }) {
             // This prevents loading the previous month when the view starts with trailing days
             const center = new Date((arg.start.getTime() + arg.end.getTime()) / 2)
             const m = `${center.getFullYear()}-${String(center.getMonth() + 1).padStart(2, '0')}`
+            setCurrentMonth(m)
             load(m)
           }}
           eventClick={(info) => {

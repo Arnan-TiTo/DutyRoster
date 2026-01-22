@@ -25,21 +25,25 @@ export async function POST(req: NextRequest) {
 
         if (employees.length === 0) return bad(400, 'No employees with role "Staff" found')
 
-        // 2. Event Type for "Event"
-        const eventType = await prisma.eventType.findUnique({
-            where: { eventCode: 'EVENT' }
-        })
-        if (!eventType) return bad(400, 'EventType "EVENT" not found')
+        // 2. Event Types
+        const eventEvent = await prisma.eventType.findUnique({ where: { eventCode: 'EVENT' } })
+        const workShiftEvent = await prisma.eventType.findUnique({ where: { eventCode: 'SHIFT' } })
 
-        // 3. Get MORN shift slot for showroom
+        if (!eventEvent || !workShiftEvent) {
+            return bad(400, 'Required EventTypes (EVENT or SHIFT) not found')
+        }
+
+        // 3. Get MORN shift slot
         const mornSlot = await prisma.shiftSlot.findUnique({ where: { slotCode: 'MORN' } })
         if (!mornSlot) return bad(400, 'MORN shift slot not found')
 
-        // 4. Clear existing "Event" entries for this month (Clean Re-run)
+        // 4. Clear existing entries for this month (Clean Re-run)
+        // We clear both "Event" and "Work Shift" entries that were generated via Round Robin
+        // For simplicity, we filter by these two event types
         await prisma.$transaction(async (tx) => {
             const existingEntries = await tx.rosterEntry.findMany({
                 where: {
-                    eventTypeId: eventType.eventTypeId,
+                    eventTypeId: { in: [eventEvent.eventTypeId, workShiftEvent.eventTypeId] },
                     entryDate: { gte: startDate, lte: endDate }
                 },
                 select: { entryId: true }
@@ -74,17 +78,19 @@ export async function POST(req: NextRequest) {
             return bad(400, 'EVENT1 or EVENT2 shift slots not found. Please run seed.')
         }
 
-        // Extract times from shift slots
-        const shift1Start = new Date(event1Slot.startTime).getUTCHours()
-        const shift1End = new Date(event1Slot.endTime).getUTCHours()
-        const shift2Start = new Date(event2Slot.startTime).getUTCHours()
-        const shift2End = new Date(event2Slot.endTime).getUTCHours()
-        const mornStart = new Date(mornSlot.startTime).getUTCHours()
-        const mornEnd = new Date(mornSlot.endTime).getUTCHours()
+        // Helper to combine Date (UTC-based for DB Date column) and ShiftSlot time (stored as "wall time" in UTC)
+        const combineDateTime = (date: Date, slotTime: Date) => {
+            const h = new Date(slotTime).getUTCHours()
+            const m = new Date(slotTime).getUTCMinutes()
+            // We use new Date(...) which uses local time. 
+            // This ensures that when the server/browser calls toLocaleTimeString(), 
+            // it shows the exact h:m we extracted.
+            return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), h, m, 0)
+        }
 
         const shifts = [
-            { name: 'Shift 1', start: shift1Start, end: shift1End },
-            { name: 'Shift 2', start: shift2Start, end: shift2End }
+            { name: 'Shift 1', slot: event1Slot },
+            { name: 'Shift 2', slot: event2Slot }
         ]
 
         // 7. Generation Logic
@@ -101,29 +107,66 @@ export async function POST(req: NextRequest) {
 
                 // Create event location entries
                 for (const loc of eventLocations) {
-                    const shiftsToCreate = Math.min(loc.shiftsPerDay, 2)
+                    const numShifts = Math.min(loc.shiftsPerDay, 2)
 
-                    for (let i = 0; i < shiftsToCreate; i++) {
-                        const sh = shifts[i]
-                        const startAt = new Date(Date.UTC(year, monthNum - 1, day, sh.start, 0, 0))
-                        const endAt = new Date(Date.UTC(year, monthNum - 1, day, sh.end, 0, 0))
+                    if (numShifts === 2) {
+                        for (let i = 0; i < 2; i++) {
+                            const sh = shifts[i]
+                            const startAt = combineDateTime(entryDate, sh.slot.startTime)
+                            const endAt = combineDateTime(entryDate, sh.slot.endTime)
+
+                            const entry = await tx.rosterEntry.create({
+                                data: {
+                                    eventTypeId: eventEvent.eventTypeId,
+                                    locationId: loc.locationId,
+                                    shiftSlotId: sh.slot.shiftSlotId,
+                                    entryDate,
+                                    startAt,
+                                    endAt,
+                                    note: `${loc.locationName} (${sh.name})`
+                                }
+                            })
+
+                            // Assign 1 staff per shift
+                            const availableStaff = employees
+                                .filter(e => !assignedToday.includes(e.employeeId))
+                                .sort((a, b) => (assignmentCounts[a.employeeId] - assignmentCounts[b.employeeId]) || a.employeeId.localeCompare(b.employeeId))
+
+                            if (availableStaff.length > 0) {
+                                const selected = availableStaff[0]
+                                await tx.rosterAssignment.create({
+                                    data: {
+                                        entryId: entry.entryId,
+                                        employeeId: selected.employeeId
+                                    }
+                                })
+                                assignmentCounts[selected.employeeId]++
+                                assignedToday.push(selected.employeeId)
+                                results.push({ entryId: entry.entryId, employeeId: selected.employeeId })
+                            }
+                        }
+                    } else if (numShifts === 1) {
+                        const sh = shifts[0]
+                        const startAt = combineDateTime(entryDate, sh.slot.startTime)
+                        const endAt = combineDateTime(entryDate, sh.slot.endTime)
 
                         const entry = await tx.rosterEntry.create({
                             data: {
-                                eventTypeId: eventType.eventTypeId,
+                                eventTypeId: eventEvent.eventTypeId,
                                 locationId: loc.locationId,
+                                shiftSlotId: sh.slot.shiftSlotId,
                                 entryDate,
                                 startAt,
                                 endAt,
-                                note: `${loc.locationName} (${sh.name})`
+                                note: `${loc.locationName}`
                             }
                         })
 
-                        // Assign staff to this shift (staffPerShift people)
+                        // Assign staffPerShift to this single shift
                         for (let s = 0; s < loc.staffPerShift; s++) {
                             const availableStaff = employees
                                 .filter(e => !assignedToday.includes(e.employeeId))
-                                .sort((a, b) => assignmentCounts[a.employeeId] - assignmentCounts[b.employeeId])
+                                .sort((a, b) => (assignmentCounts[a.employeeId] - assignmentCounts[b.employeeId]) || a.employeeId.localeCompare(b.employeeId))
 
                             if (availableStaff.length > 0) {
                                 const selected = availableStaff[0]
@@ -141,36 +184,35 @@ export async function POST(req: NextRequest) {
                     }
                 }
 
-                // Assign remaining staff to showroom
-                if (showroomLocation) {
-                    const remainingStaff = employees.filter(e => !assignedToday.includes(e.employeeId))
+                // Assign remaining staff to Workshop / Morning shift
+                const remainingStaff = employees.filter(e => !assignedToday.includes(e.employeeId))
 
-                    if (remainingStaff.length > 0) {
-                        const startAt = new Date(Date.UTC(year, monthNum - 1, day, mornStart, 0, 0))
-                        const endAt = new Date(Date.UTC(year, monthNum - 1, day, mornEnd, 0, 0))
+                if (remainingStaff.length > 0) {
+                    const startAt = combineDateTime(entryDate, mornSlot.startTime)
+                    const endAt = combineDateTime(entryDate, mornSlot.endTime)
 
-                        const showroomEntry = await tx.rosterEntry.create({
+                    const workShiftEntry = await tx.rosterEntry.create({
+                        data: {
+                            eventTypeId: workShiftEvent.eventTypeId,
+                            locationId: showroomLocation?.locationId,
+                            shiftSlotId: mornSlot.shiftSlotId,
+                            entryDate,
+                            startAt,
+                            endAt,
+                            note: 'Staff Remaining (Work Shift)'
+                        }
+                    })
+
+                    // Assign all remaining staff to this "Work Shift"
+                    for (const emp of remainingStaff) {
+                        await tx.rosterAssignment.create({
                             data: {
-                                eventTypeId: eventType.eventTypeId,
-                                locationId: showroomLocation.locationId,
-                                entryDate,
-                                startAt,
-                                endAt,
-                                note: `${showroomLocation.locationName}`
+                                entryId: workShiftEntry.entryId,
+                                employeeId: emp.employeeId
                             }
                         })
-
-                        // Assign all remaining staff to showroom
-                        for (const emp of remainingStaff) {
-                            await tx.rosterAssignment.create({
-                                data: {
-                                    entryId: showroomEntry.entryId,
-                                    employeeId: emp.employeeId
-                                }
-                            })
-                            assignmentCounts[emp.employeeId]++
-                            results.push({ entryId: showroomEntry.entryId, employeeId: emp.employeeId })
-                        }
+                        assignmentCounts[emp.employeeId]++
+                        results.push({ entryId: workShiftEntry.entryId, employeeId: emp.employeeId })
                     }
                 }
             }

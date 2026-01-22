@@ -66,17 +66,17 @@ export default function ReportsPage() {
             XLSX.utils.book_append_sheet(wb, ws, 'Summary')
         } else {
             // Prepare Daily Data
-            const headers = [t.reports.date, t.reports.day, ...rawDaily.columns.map((c: any) => c.eventName), t.reports.remark]
+            const headers = [t.reports.date, t.reports.day, ...rawDaily.columns.map((c: any) => c.name), t.reports.remark]
             const rows = rawDaily.days.map((d: any) => {
-                const shifts = rawDaily.columns.reduce((acc: any, c: any) => {
-                    const staff = d.assignments[c.eventTypeId] || []
-                    acc[c.eventName] = staff.join(', ')
+                const assignments = rawDaily.columns.reduce((acc: any, c: any) => {
+                    const staff = d.assignments[c.id] || []
+                    acc[c.name] = staff.join(', ')
                     return acc
                 }, {})
                 return {
                     'Date': d.date,
                     'Day': d.dayOfWeek,
-                    ...shifts,
+                    ...assignments,
                     'Remark': d.holidayName
                 }
             })
@@ -176,8 +176,8 @@ export default function ReportsPage() {
                                         <th className="w-20 bg-slate-800 text-center border border-white/10">{t.reports.date}</th>
                                         <th className="w-20 bg-slate-800 text-center border border-white/10">{t.reports.day}</th>
                                         {rawDaily.columns.map((c: any) => (
-                                            <th key={c.eventTypeId} className="bg-slate-800 text-center border border-white/10 whitespace-nowrap px-2">
-                                                {c.eventName} ({c.eventCode})
+                                            <th key={c.id} className="bg-slate-800 text-center border border-white/10 whitespace-nowrap px-2">
+                                                {c.name}
                                             </th>
                                         ))}
                                         <th className="bg-slate-800 text-left border border-white/10 w-48">{t.reports.remark}</th>
@@ -194,9 +194,9 @@ export default function ReportsPage() {
                                                 {d.dayOfWeek}
                                             </td>
                                             {rawDaily.columns.map((c: any) => {
-                                                const staff = d.assignments[c.eventTypeId] || []
+                                                const staff = d.assignments[c.id] || []
                                                 return (
-                                                    <td key={c.eventTypeId} className="border border-white/10 p-2 align-top text-xs">
+                                                    <td key={c.id} className="border border-white/10 p-2 align-top text-xs">
                                                         {staff.length > 0 ? (
                                                             <div className="flex flex-wrap gap-1">
                                                                 {staff.map((s: string, idx: number) => (

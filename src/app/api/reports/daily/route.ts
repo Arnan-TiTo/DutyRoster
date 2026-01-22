@@ -17,13 +17,40 @@ export async function GET(req: NextRequest) {
         const month = url.searchParams.get('month') || new Date().toISOString().slice(0, 7)
         const { start, end } = getMonthRange(month)
 
-        // 1. Fetch Event Types (Columns)
-        const eventTypes = await prisma.eventType.findMany({
-            where: { isActive: true },
-            orderBy: { sortOrder: 'asc' }
+        // 1. Fetch Event Types and Locations
+        const [eventTypes, locations] = await Promise.all([
+            prisma.eventType.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' } }),
+            prisma.location.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' } })
+        ])
+
+        // 2. Define Columns
+        // Requirement: Split EVENT by location, others remain as-is.
+        const reportColumns: any[] = []
+        eventTypes.forEach(et => {
+            if (et.eventCode === 'EVENT') {
+                // Split by location
+                locations.forEach(loc => {
+                    reportColumns.push({
+                        id: `${et.eventTypeId}_${loc.locationId}`,
+                        name: `${loc.locationName} (${et.eventName})`,
+                        eventTypeId: et.eventTypeId,
+                        locationId: loc.locationId,
+                        eventCode: et.eventCode
+                    })
+                })
+            } else {
+                // Keep as single column
+                reportColumns.push({
+                    id: et.eventTypeId,
+                    name: `${et.eventName} (${et.eventCode})`,
+                    eventTypeId: et.eventTypeId,
+                    locationId: null,
+                    eventCode: et.eventCode
+                })
+            }
         })
 
-        // 2. Fetch Entries with Assignments
+        // 3. Fetch Entries with Assignments
         const entries = await prisma.rosterEntry.findMany({
             where: {
                 entryDate: { gte: start, lt: end }
@@ -36,50 +63,49 @@ export async function GET(req: NextRequest) {
             orderBy: { entryDate: 'asc' }
         })
 
-        // 3. Fetch Holidays for "Remarks" or special coloring
+        // 4. Fetch Holidays for "Remarks"
         const holidays = await prisma.companyHoliday.findMany({
             where: { holidayDate: { gte: start, lt: end } }
         })
 
-        // 4. Build Days Array
+        // 5. Build Days Array
         const days = []
         const current = new Date(start)
         while (current < end) {
             const dateStr = current.toISOString().slice(0, 10)
+            const dayEntries = entries.filter((e: any) => e.entryDate.toISOString().slice(0, 10) === dateStr)
+            const holiday = holidays.find((h: any) => h.holidayDate.toISOString().slice(0, 10) === dateStr)
 
-            // Find entries for this day
-            const dayEntries = entries.filter((e: typeof entries[0]) => e.entryDate.toISOString().slice(0, 10) === dateStr)
-
-            // Find holiday
-            const holiday = holidays.find((h: typeof holidays[0]) => h.holidayDate.toISOString().slice(0, 10) === dateStr)
-
-            // Group by Event Type
             const rowData: any = {
                 date: dateStr,
-                dayOfWeek: current.toLocaleDateString('th-TH', { weekday: 'short' }), // User requested Thai "จันทร์", "อังคาร" etc.
+                dayOfWeek: current.toLocaleDateString('th-TH', { weekday: 'short' }),
                 isHoliday: !!holiday,
                 holidayName: holiday?.holidayName || '',
                 assignments: {}
             }
 
-            // Init buckets
-            eventTypes.forEach((et: typeof eventTypes[0]) => {
-                rowData.assignments[et.eventTypeId] = []
+            // Init buckets for each column
+            reportColumns.forEach(col => {
+                rowData.assignments[col.id] = []
             })
 
             // Fill buckets
-            dayEntries.forEach((entry: typeof entries[0]) => {
-                // If we also want to group by Shift Slot (e.g. LP 08:30 vs LP 10:00), we might need deeper nesting.
-                // The user's image shows "LP 08:30" and "LP 10:00" as separate columns.
-                // If these are different Shift Slots under SAME Event Type ("LP"), we need to handle that.
-                // For now, let's group by Event Type, and append shift slot info if multiple slots exist.
+            dayEntries.forEach((entry: any) => {
+                const names = entry.assignments.map((a: any) => a.employee.nickName || a.employee.firstName)
+                if (names.length === 0) return
 
-                const names = (entry.assignments as any[]).map((a: any) =>
-                    a.employee.nickName || a.employee.firstName
-                )
-
-                if (names.length > 0) {
-                    rowData.assignments[entry.eventTypeId].push(...names)
+                // Determine which column(s) this entry belongs to
+                if (entry.eventType.eventCode === 'EVENT' && entry.locationId) {
+                    const colId = `${entry.eventTypeId}_${entry.locationId}`
+                    if (rowData.assignments[colId]) {
+                        rowData.assignments[colId].push(...names)
+                    }
+                } else {
+                    // Fallback to eventTypeId (for SHIFT, HOLIDAY, etc.)
+                    const colId = entry.eventTypeId
+                    if (rowData.assignments[colId]) {
+                        rowData.assignments[colId].push(...names)
+                    }
                 }
             })
 
@@ -89,7 +115,7 @@ export async function GET(req: NextRequest) {
 
         return ok({
             month,
-            columns: eventTypes,
+            columns: reportColumns,
             days
         })
 

@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
                 locations.forEach(loc => {
                     reportColumns.push({
                         id: `${et.eventTypeId}_${loc.locationId}`,
-                        name: `${loc.locationName} (${et.eventName})`,
+                        name: `${loc.locationNameEn} (${et.eventName})`,
                         eventTypeId: et.eventTypeId,
                         locationId: loc.locationId,
                         eventCode: et.eventCode

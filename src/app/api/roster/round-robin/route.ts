@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
                                     entryDate,
                                     startAt,
                                     endAt,
-                                    note: `${loc.locationName} (${sh.name})`
+                                    note: `${loc.locationNameEn} (${sh.name})`
                                 }
                             })
 
@@ -158,11 +158,7 @@ export async function POST(req: NextRequest) {
                                 entryDate,
                                 startAt,
                                 endAt,
-<<<<<<< HEAD
-                                note: `${loc.locationName}`
-=======
                                 note: `${loc.locationNameEn} (${sh.name})`
->>>>>>> c6fd4db127573933aa2f1f2ff7a49ad993ca601d
                             }
                         })
 
@@ -211,17 +207,8 @@ export async function POST(req: NextRequest) {
                     for (const emp of remainingStaff) {
                         await tx.rosterAssignment.create({
                             data: {
-<<<<<<< HEAD
                                 entryId: workShiftEntry.entryId,
                                 employeeId: emp.employeeId
-=======
-                                eventTypeId: eventType.eventTypeId,
-                                locationId: showroomLocation.locationId,
-                                entryDate,
-                                startAt,
-                                endAt,
-                                note: `${showroomLocation.locationNameEn}`
->>>>>>> c6fd4db127573933aa2f1f2ff7a49ad993ca601d
                             }
                         })
                         assignmentCounts[emp.employeeId]++

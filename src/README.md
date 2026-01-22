@@ -69,3 +69,10 @@ npm run dev
 - RBAC ฝั่ง server ตรวจจาก session roles (ADMIN/SUPERVISOR/STAFF)
 - Calendar staff จะเห็นเฉพาะ entries ที่ถูก assign เท่านั้น
 
+### Deploy
+cd c:\SourceCode\Dutyroster\src
+npm run build
+pm2 delete duty-roster
+pm2 stop duty-roster
+pm2 start ecosystem.config.cjs
+pm2 save

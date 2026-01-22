@@ -270,7 +270,8 @@ model Setting {
 model Location {
   locationId   String   @id @default(uuid()) @map("location_id")
   locationCode String?  @unique @map("location_code")
-  locationName String   @map("location_name")
+  locationNameTh String?   @map("location_name_th")
+  locationNameEn String   @map("location_name")
   shiftsPerDay Int      @default(1) @map("shifts_per_day")
   staffPerShift Int     @default(1) @map("staff_per_shift")
   isActive     Boolean  @default(true) @map("is_active")

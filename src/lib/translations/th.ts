@@ -60,6 +60,7 @@ export const th = {
         eventTypes: 'ประเภทกิจกรรม',
         shiftSlots: 'รอบเวลา',
         companyHolidays: 'วันหยุดบริษัท',
+        locations: 'สถานที่',
         teams: 'ทีม',
         leaveTypes: 'ประเภทการลา',
         rolesPerms: 'บทบาทและสิทธิ์',

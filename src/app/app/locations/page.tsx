@@ -15,9 +15,11 @@ export default function LocationsPage() {
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
     // Form state
-    const [locationName, setLocationName] = useState('')
+    const [locationNameTh, setLocationNameTh] = useState('')
+    const [locationNameEn, setLocationNameEn] = useState('')
     const [locationCode, setLocationCode] = useState('')
     const [shiftsPerDay, setShiftsPerDay] = useState(1)
+    const [staffPerShift, setStaffPerShift] = useState(1)
     const [isActive, setIsActive] = useState(true)
     const [sortOrder, setSortOrder] = useState(0)
     const [saving, setSaving] = useState(false)
@@ -44,9 +46,11 @@ export default function LocationsPage() {
 
     function handleCreate() {
         setEditingLocation(null)
-        setLocationName('')
+        setLocationNameTh('')
+        setLocationNameEn('')
         setLocationCode('')
         setShiftsPerDay(1)
+        setStaffPerShift(1)
         setIsActive(true)
         setSortOrder(0)
         setError(null)
@@ -55,9 +59,11 @@ export default function LocationsPage() {
 
     function handleEdit(location: any) {
         setEditingLocation(location)
-        setLocationName(location.locationName)
+        setLocationNameTh(location.locationNameTh || '')
+        setLocationNameEn(location.locationNameEn || '')
         setLocationCode(location.locationCode || '')
         setShiftsPerDay(location.shiftsPerDay || 1)
+        setStaffPerShift(location.staffPerShift || 1)
         setIsActive(location.isActive)
         setSortOrder(location.sortOrder || 0)
         setError(null)
@@ -65,8 +71,8 @@ export default function LocationsPage() {
     }
 
     async function handleSave() {
-        if (!locationName.trim()) {
-            setError('Location name is required')
+        if (!locationNameEn.trim()) {
+            setError('English name is required')
             return
         }
 
@@ -75,9 +81,11 @@ export default function LocationsPage() {
 
         try {
             const body = {
-                locationName: locationName.trim(),
+                locationNameTh: locationNameTh.trim(),
+                locationNameEn: locationNameEn.trim(),
                 locationCode: locationCode.trim() || null,
                 shiftsPerDay,
+                staffPerShift,
                 isActive,
                 sortOrder
             }
@@ -163,9 +171,11 @@ export default function LocationsPage() {
                         <table className="table w-full">
                             <thead>
                                 <tr>
-                                    <th>Name</th>
+                                    <th>Name (TH)</th>
+                                    <th>Name (EN)</th>
                                     <th>Code</th>
                                     <th>Shifts/Day</th>
+                                    <th>Staff/Shift</th>
                                     <th>Sort Order</th>
                                     <th>Status</th>
                                     <th className="text-right">Actions</th>
@@ -174,9 +184,11 @@ export default function LocationsPage() {
                             <tbody>
                                 {locations.map((location) => (
                                     <tr key={location.locationId} className="hover:bg-white/5">
-                                        <td className="font-medium">{location.locationName}</td>
+                                        <td className="font-medium">{location.locationNameTh}</td>
+                                        <td className="font-medium">{location.locationNameEn}</td>
                                         <td className="text-white/70">{location.locationCode || '-'}</td>
                                         <td className="text-white/70">{location.shiftsPerDay || 1}</td>
+                                        <td className="text-white/70">{location.staffPerShift || 1}</td>
                                         <td className="text-white/70">{location.sortOrder}</td>
                                         <td>
                                             <span className={`px-2 py-1 rounded text-xs ${location.isActive ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-300'}`}>
@@ -227,12 +239,23 @@ export default function LocationsPage() {
 
                         <div className="space-y-4">
                             <div>
-                                <label className="label">Location Name <span className="text-red-400">*</span></label>
+                                <label className="label">Location Name (Thai) <span className="text-red-400">*</span></label>
                                 <input
                                     type="text"
                                     className="input mt-1 w-full"
-                                    value={locationName}
-                                    onChange={(e) => setLocationName(e.target.value)}
+                                    value={locationNameTh}
+                                    onChange={(e) => setLocationNameTh(e.target.value)}
+                                    placeholder="เช่น สยามพารากอน"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="label">Location Name (English) <span className="text-red-400">*</span></label>
+                                <input
+                                    type="text"
+                                    className="input mt-1 w-full"
+                                    value={locationNameEn}
+                                    onChange={(e) => setLocationNameEn(e.target.value)}
                                     placeholder="e.g., Siam Paragon"
                                 />
                             </div>
@@ -259,6 +282,18 @@ export default function LocationsPage() {
                                     onChange={(e) => setShiftsPerDay(Math.min(2, Math.max(1, parseInt(e.target.value) || 1)))}
                                 />
                                 <p className="text-xs text-white/50 mt-1">Number of shifts to create per day (1-2)</p>
+                            </div>
+
+                            <div>
+                                <label className="label">Staff Per Shift</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    className="input mt-1 w-full"
+                                    value={staffPerShift}
+                                    onChange={(e) => setStaffPerShift(parseInt(e.target.value) || 1)}
+                                />
+                                <p className="text-xs text-white/50 mt-1">Number of staff needed per shift</p>
                             </div>
 
                             <div>
@@ -299,7 +334,7 @@ export default function LocationsPage() {
                                 <button
                                     onClick={handleSave}
                                     className="btn-primary"
-                                    disabled={saving || !locationName.trim()}
+                                    disabled={saving || !locationNameEn.trim()}
                                 >
                                     {saving ? 'Saving...' : 'Save'}
                                 </button>

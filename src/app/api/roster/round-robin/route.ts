@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
         // 5. Fetch active locations
         const locations = await prisma.location.findMany({
             where: { isActive: true },
-            orderBy: [{ sortOrder: 'asc' }, { locationName: 'asc' }]
+            orderBy: [{ sortOrder: 'asc' }, { locationNameEn: 'asc' }]
         })
 
         if (locations.length === 0) {
@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
                                 entryDate,
                                 startAt,
                                 endAt,
-                                note: `${loc.locationName} (${sh.name})`
+                                note: `${loc.locationNameEn} (${sh.name})`
                             }
                         })
 
@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
                                 entryDate,
                                 startAt,
                                 endAt,
-                                note: `${showroomLocation.locationName}`
+                                note: `${showroomLocation.locationNameEn}`
                             }
                         })
 

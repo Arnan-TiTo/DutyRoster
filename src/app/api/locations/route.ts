@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
     const items = await prisma.location.findMany({
       where: onlyActive ? { isActive: true } : undefined,
-      orderBy: [{ sortOrder: 'asc' }, { locationName: 'asc' }]
+      orderBy: [{ sortOrder: 'asc' }, { locationNameEn: 'asc' }]
     })
 
     return ok({ items })
@@ -29,19 +29,23 @@ export async function POST(req: NextRequest) {
     if (!sess.roles.includes('ADMIN') && !sess.roles.includes('SUPERVISOR')) return bad(403, 'FORBIDDEN')
 
     const body = await readJson<any>(req)
-    const locationName = String(body.locationName || '').trim()
-    if (!locationName) return bad(400, 'locationName required')
+    const locationNameTh = String(body.locationNameTh || '').trim()
+    const locationNameEn = String(body.locationNameEn || '').trim()
+    if (!locationNameEn) return bad(400, 'locationNameEn required')
 
     const locationCode = body.locationCode ? String(body.locationCode).trim() : null
     const shiftsPerDay = body.shiftsPerDay !== undefined ? Math.min(2, Math.max(1, parseInt(body.shiftsPerDay))) : 1
+    const staffPerShift = body.staffPerShift !== undefined ? parseInt(body.staffPerShift) : 1
     const isActive = body.isActive !== undefined ? Boolean(body.isActive) : true
     const sortOrder = body.sortOrder !== undefined ? parseInt(body.sortOrder) : 0
 
     const item = await prisma.location.create({
       data: {
-        locationName,
+        locationNameTh,
+        locationNameEn,
         locationCode,
         shiftsPerDay,
+        staffPerShift,
         isActive,
         sortOrder
       }

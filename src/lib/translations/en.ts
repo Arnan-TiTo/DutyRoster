@@ -62,6 +62,7 @@ export const en: TranslationKeys = {
         eventTypes: 'Event Types',
         shiftSlots: 'Shift Slots',
         companyHolidays: 'Company Holidays',
+        locations: 'Locations',
         teams: 'Teams',
         leaveTypes: 'Leave Types',
         rolesPerms: 'Roles & Permissions',

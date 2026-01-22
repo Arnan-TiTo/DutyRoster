@@ -85,7 +85,7 @@ export default function Sidebar({
         },
         {
           href: '/app/locations',
-          label: 'Locations',
+          label: t.sidebar.locations,
           icon: <MapPin size={16} />,
           show: () => isAdmin
         },

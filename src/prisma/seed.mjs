@@ -182,16 +182,31 @@ async function main() {
 
   // Locations
   const locations = [
-    { code: 'Loc001', name: 'สยาม', sort: 1, shifts: 1, staff: 1 },
-    { code: 'Loc002', name: 'บางนา', sort: 2, shifts: 1, staff: 1 },
-    { code: 'Loc003', name: 'เมืองทอง', sort: 3, shifts: 1, staff: 1 },
-    { code: 'SHOWROOM', name: 'โชว์รูม/ออฟฟิศ', sort: 99, shifts: 1, staff: 5 }
+    { code: 'Loc001', th: 'สยาม', en: 'Siam', sort: 1, shifts: 1, staff: 1 },
+    { code: 'Loc002', th: 'บางนา', en: 'Bangna', sort: 2, shifts: 1, staff: 1 },
+    { code: 'Loc003', th: 'เมืองทอง', en: 'Muang Thong', sort: 3, shifts: 1, staff: 1 },
+    { code: 'SHOWROOM', th: 'โชว์รูม/ออฟฟิศ', en: 'Showroom/Office', sort: 99, shifts: 1, staff: 5 }
   ]
   for (const loc of locations) {
     await prisma.location.upsert({
       where: { locationCode: loc.code },
-      update: { locationName: loc.name, sortOrder: loc.sort, shiftsPerDay: loc.shifts, staffPerShift: loc.staff, isActive: true },
-      create: { locationCode: loc.code, locationName: loc.name, sortOrder: loc.sort, shiftsPerDay: loc.shifts, staffPerShift: loc.staff, isActive: true }
+      update: {
+        locationNameTh: loc.th,
+        locationNameEn: loc.en,
+        sortOrder: loc.sort,
+        shiftsPerDay: loc.shifts,
+        staffPerShift: loc.staff,
+        isActive: true
+      },
+      create: {
+        locationCode: loc.code,
+        locationNameTh: loc.th,
+        locationNameEn: loc.en,
+        sortOrder: loc.sort,
+        shiftsPerDay: loc.shifts,
+        staffPerShift: loc.staff,
+        isActive: true
+      }
     })
   }
 

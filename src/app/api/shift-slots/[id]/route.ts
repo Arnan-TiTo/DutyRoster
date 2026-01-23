@@ -22,6 +22,7 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
       data: {
         slotCode: body.slotCode ? String(body.slotCode).trim() : null,
         slotName,
+        locationCode: body.locationCode ? String(body.locationCode).trim() : null,
         startTime: start,
         endTime: end,
         minStaff: Number(body.minStaff || 0),

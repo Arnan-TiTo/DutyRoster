@@ -9,6 +9,7 @@ type ShiftSlot = {
   shiftSlotId: string
   slotCode: string | null
   slotName: string
+  locationCode: string | null
   startTime: string
   endTime: string
   minStaff: number
@@ -20,11 +21,13 @@ type ShiftSlot = {
 export default function ShiftSlotsPage() {
   const t = useTranslation()
   const [items, setItems] = useState<ShiftSlot[]>([])
+  const [locations, setLocations] = useState<any[]>([])
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<ShiftSlot | null>(null)
   const [form, setForm] = useState<Partial<ShiftSlot>>({
     slotCode: '',
     slotName: '',
+    locationCode: null,
     startTime: '09:00',
     endTime: '18:00',
     minStaff: 0,
@@ -38,11 +41,20 @@ export default function ShiftSlotsPage() {
     setItems(data.items || [])
   }
 
-  useEffect(() => { load() }, [])
+  async function loadLocations() {
+    const res = await fetch('/api/locations?active=1')
+    const data = await res.json()
+    setLocations(data.items || [])
+  }
+
+  useEffect(() => {
+    load()
+    loadLocations()
+  }, [])
 
   function startCreate() {
     setEditing(null)
-    setForm({ slotCode: '', slotName: '', startTime: '09:00', endTime: '18:00', minStaff: 0, maxStaff: 0, sortOrder: 0 })
+    setForm({ slotCode: '', slotName: '', locationCode: null, startTime: '09:00', endTime: '18:00', minStaff: 0, maxStaff: 0, sortOrder: 0 })
     setOpen(true)
   }
 
@@ -56,6 +68,7 @@ export default function ShiftSlotsPage() {
     const body = {
       slotCode: String(form.slotCode || '').trim() || null,
       slotName: String(form.slotName || '').trim(),
+      locationCode: form.locationCode || null,
       startTime: String(form.startTime || '09:00'),
       endTime: String(form.endTime || '18:00'),
       minStaff: Number(form.minStaff || 0),
@@ -100,6 +113,7 @@ export default function ShiftSlotsPage() {
             <tr className="text-left">
               <th className="p-3">{t.shiftSlots.code}</th>
               <th className="p-3">{t.shiftSlots.name}</th>
+              <th className="p-3">Location</th>
               <th className="p-3">{t.shiftSlots.time}</th>
               <th className="p-3">{t.shiftSlots.minStaff}</th>
               <th className="p-3">{t.shiftSlots.maxStaff}</th>
@@ -111,6 +125,7 @@ export default function ShiftSlotsPage() {
               <tr key={x.shiftSlotId} className="border-t border-white/5">
                 <td className="p-3">{x.slotCode || '-'}</td>
                 <td className="p-3">{x.slotName}</td>
+                <td className="p-3"><span className="px-2 py-1 bg-blue-500/20 text-blue-300 rounded text-xs">{x.locationCode || '-'}</span></td>
                 <td className="p-3">{x.startTime} - {x.endTime}</td>
                 <td className="p-3">{x.minStaff}</td>
                 <td className="p-3">{x.maxStaff}</td>
@@ -121,7 +136,7 @@ export default function ShiftSlotsPage() {
               </tr>
             ))}
             {items.length === 0 && (
-              <tr><td className="p-3 text-white/60" colSpan={6}>{t.common.noData}</td></tr>
+              <tr><td className="p-3 text-white/60" colSpan={7}>{t.common.noData}</td></tr>
             )}
           </tbody>
         </table>
@@ -136,6 +151,18 @@ export default function ShiftSlotsPage() {
           <div>
             <label className="label">{t.shiftSlots.name}</label>
             <input className="input mt-1" value={form.slotName || ''} onChange={(e) => setForm({ ...form, slotName: e.target.value })} />
+          </div>
+          <div className="lg:col-span-2">
+            <label className="label">Location Code</label>
+            <select className="input mt-1" value={form.locationCode || ''} onChange={(e) => setForm({ ...form, locationCode: e.target.value || null })}>
+              <option value="">(ไม่ระบุ - ใช้ pattern matching)</option>
+              {locations.map((loc) => (
+                <option key={loc.locationId} value={loc.locationCode}>
+                  {loc.locationCode} - {loc.locationNameEn}
+                </option>
+              ))}
+            </select>
+            <div className="text-xs text-white/50 mt1">เลือก Location Code สำหรับ shift นี้ หรือเว้นว่างเพื่อใช้ naming pattern</div>
           </div>
           <div>
             <label className="label">{t.shiftSlots.startTime}</label>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import * as XLSX from 'xlsx'
+import XLSX from 'xlsx-js-style'
 import { FileDown } from 'lucide-react'
 import { useTranslation } from '@/lib/useTranslation'
 
@@ -51,22 +51,29 @@ export default function ReportsPage() {
 
         if (view === 'SUMMARY') {
             // Prepare Summary Data
-            const headers = [t.reports.employee, t.reports.totalHours, ...allShiftTypes, t.reports.leaves, t.reports.holidayCredit]
+            const empHeader = t.reports.employee
+            const hoursHeader = t.reports.totalHours
+            const leavesHeader = t.reports.leaves
+            const creditHeader = t.reports.holidayCredit
+            const headers = [empHeader, hoursHeader, ...allShiftTypes, leavesHeader, creditHeader]
             const rows = data.map(item => {
                 const shifts = allShiftTypes.reduce((acc, t) => ({ ...acc, [t]: item.shiftCounts[t] || '-' }), {})
                 return {
-                    'Employee': item.name,
-                    'Total Hours': item.totalHours,
+                    [empHeader]: item.name,
+                    [hoursHeader]: item.totalHours,
                     ...shifts,
-                    'Leaves (Days)': item.leaveDays,
-                    'Holiday Credit (Days)': (item.holidayCreditHours / 8).toFixed(2)
+                    [leavesHeader]: item.leaveDays,
+                    [creditHeader]: (item.holidayCreditHours / 8).toFixed(2)
                 }
             })
             const ws = XLSX.utils.json_to_sheet(rows, { header: headers })
             XLSX.utils.book_append_sheet(wb, ws, 'Summary')
         } else {
             // Prepare Daily Data
-            const headers = [t.reports.date, t.reports.day, ...rawDaily.columns.map((c: any) => c.name), t.reports.remark]
+            const dateHeader = t.reports.date
+            const dayHeader = t.reports.day
+            const remarkHeader = t.reports.remark
+            const headers = [dateHeader, dayHeader, ...rawDaily.columns.map((c: any) => c.name), remarkHeader]
             const rows = rawDaily.days.map((d: any) => {
                 const assignments = rawDaily.columns.reduce((acc: any, c: any) => {
                     const staff = d.assignments[c.id] || []
@@ -74,13 +81,55 @@ export default function ReportsPage() {
                     return acc
                 }, {})
                 return {
-                    'Date': d.date,
-                    'Day': d.dayOfWeek,
+                    [dateHeader]: d.date,
+                    [dayHeader]: d.dayOfWeek,
                     ...assignments,
-                    'Remark': d.holidayName
+                    [remarkHeader]: d.holidayName
                 }
             })
             const ws = XLSX.utils.json_to_sheet(rows, { header: headers })
+
+            // Styling for Daily View
+            const range = XLSX.utils.decode_range(ws['!ref'] || 'A1')
+
+            for (let R = range.s.r; R <= range.e.r; ++R) {
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const cellRef = XLSX.utils.encode_cell({ r: R, c: C })
+                    if (!ws[cellRef]) ws[cellRef] = { t: 's', v: '' }
+
+                    const cell = ws[cellRef]
+                    cell.s = {
+                        border: {
+                            top: { style: 'thin' },
+                            bottom: { style: 'thin' },
+                            left: { style: 'thin' },
+                            right: { style: 'thin' }
+                        },
+                        alignment: { vertical: 'center', wrapText: true }
+                    }
+
+                    if (R === 0) {
+                        // Header style
+                        cell.s.fill = { fgColor: { rgb: "F7CBAC" } } // Orange-ish
+                        cell.s.font = { bold: true }
+                        cell.s.alignment.horizontal = 'center'
+                    } else if (C === 0 || C === 1) {
+                        // Date & Day style
+                        cell.s.alignment.horizontal = 'center'
+                    }
+                }
+            }
+
+            // Set column widths
+            const colWidths = [
+                { wch: 12 }, // Date
+                { wch: 5 },  // Day
+                { wch: 30 }, // Work Shift
+                ...rawDaily.columns.map(() => ({ wch: 25 })), // Dynamic columns
+                { wch: 30 }  // Remark
+            ]
+            ws['!cols'] = colWidths
+
             XLSX.utils.book_append_sheet(wb, ws, 'Daily Roster')
         }
 
@@ -128,7 +177,7 @@ export default function ReportsPage() {
             </div>
 
             {view === 'SUMMARY' ? (
-                <div className="overflow-x-auto max-h-[80vh]">
+                <div className="overflow-x-auto max-w-full max-h-[80vh]">
                     <table className="table w-full">
                         <thead className="sticky top-0 bg-slate-900 z-10">
                             <tr>
@@ -167,7 +216,7 @@ export default function ReportsPage() {
                     </table>
                 </div>
             ) : ( // DAILY VIEW
-                <div className="overflow-x-auto max-h-[80vh]">
+                <div className="overflow-x-auto max-w-full max-h-[80vh]">
                     <div className="min-w-max">
                         <div className="border border-white/10 rounded-lg overflow-hidden">
                             <table className="table w-full border-collapse">

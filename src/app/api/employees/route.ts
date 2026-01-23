@@ -13,9 +13,14 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url)
     const onlyActive = asBool(url.searchParams.get('active'), false)
     const simple = asBool(url.searchParams.get('simple'), false)
+    const roleFilter = url.searchParams.get('role') || null
+
+    const where: any = {}
+    if (onlyActive) where.isActive = true
+    if (roleFilter) where.roleTitle = roleFilter
 
     const items = await prisma.employee.findMany({
-      where: onlyActive ? { isActive: true } : undefined,
+      where: Object.keys(where).length > 0 ? where : undefined,
       orderBy: [{ isActive: 'desc' }, { firstName: 'asc' }, { lastName: 'asc' }]
     })
 

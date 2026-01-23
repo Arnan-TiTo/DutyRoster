@@ -32,6 +32,7 @@ export async function GET(req: NextRequest) {
         include: {
           eventType: true,
           shiftSlot: true,
+          location: true,
           assignments: { include: { employee: true } }
         },
         orderBy: [{ startAt: 'asc' }]
@@ -48,6 +49,7 @@ export async function GET(req: NextRequest) {
             include: {
               eventType: true,
               shiftSlot: true,
+              location: true,
               assignments: { include: { employee: true } }
             }
           }
@@ -59,12 +61,38 @@ export async function GET(req: NextRequest) {
     const items = entries.map((e) => {
       const staffNames = (e.assignments || []).map((a: any) => {
         const emp = a.employee
-        return emp.nickName ? emp.nickName : `${emp.firstName}`
+        return emp.nickName || emp.firstName
       })
 
-      const slot = e.shiftSlot ? ` • ${e.shiftSlot.slotName}` : ''
-      const staff = staffNames.length ? ` (${staffNames.length})` : ''
-      const title = `${e.eventType.eventName}${slot}${staff}`
+      const locationCode = e.location?.locationCode || ''
+      const staffPart = staffNames.join(',')
+
+      // Determine if it's Sunday (0 = Sunday)
+      const entryDate = new Date(e.entryDate)
+      const isSunday = entryDate.getUTCDay() === 0
+
+      // Format title based on location and day
+      let title = ''
+
+      if (locationCode.toUpperCase().startsWith('LP')) {
+        if (isSunday) {
+          // Sunday: show location code (e.g., LP3-Ben,Ake)
+          title = `${locationCode}-${staffPart}`
+        } else {
+          // Weekday: show "LP HH:mm-Staff" (e.g., LP 08.30-Bay,Champ)
+          const startTime = e.startAt ? new Date(e.startAt) : null
+          if (startTime) {
+            const hours = String(startTime.getHours()).padStart(2, '0')
+            const minutes = String(startTime.getMinutes()).padStart(2, '0')
+            title = `LP ${hours}.${minutes}-${staffPart}`
+          } else {
+            title = `${locationCode}-${staffPart}`
+          }
+        }
+      } else {
+        // SP, Icon, or other locations: always show location code
+        title = locationCode ? `${locationCode}-${staffPart}` : `${e.eventType.eventName}-${staffPart}`
+      }
 
       return {
         id: e.entryId,
@@ -75,8 +103,14 @@ export async function GET(req: NextRequest) {
         extendedProps: {
           eventTypeId: e.eventTypeId,
           shiftSlotId: e.shiftSlotId,
+          locationId: e.locationId,
+          locationCode: e.location?.locationCode,
+          locationName: e.location?.locationNameEn,
+          eventTypeName: e.eventType.eventName,
+          shiftSlotName: e.shiftSlot?.slotName,
           note: e.note,
-          staff: staffNames
+          staff: staffNames,
+          entryDate: e.entryDate
         }
       }
     })

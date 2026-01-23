@@ -63,9 +63,9 @@ export default function EventForm({
                     fetch('/api/event-types').then((r) => r.json()),
                     fetch('/api/shift-slots').then((r) => r.json())
                 ]
-                // Only fetch employees if we can edit (Admin/Sup), otherwise Staff gets 403 anyway
+                // Only fetch employees with role_title = 'Sale' if we can edit
                 if (canEdit) {
-                    p.push(fetch('/api/employees?active=1&simple=1').then((r) => r.json()))
+                    p.push(fetch('/api/employees?active=1&simple=1&role=Sale').then((r) => r.json()))
                 }
 
                 const res = await Promise.all(p)

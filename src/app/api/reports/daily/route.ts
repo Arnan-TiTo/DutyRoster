@@ -23,23 +23,38 @@ export async function GET(req: NextRequest) {
             prisma.location.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' } })
         ])
 
-        // 2. Define Columns
-        // Requirement: Split EVENT by location, others remain as-is.
+        // 2. Define Columns in specific order as requested
         const reportColumns: any[] = []
-        eventTypes.forEach(et => {
-            if (et.eventCode === 'EVENT') {
-                // Split by location
-                locations.forEach(loc => {
-                    reportColumns.push({
-                        id: `${et.eventTypeId}_${loc.locationId}`,
-                        name: `${loc.locationNameEn} (${et.eventName})`,
-                        eventTypeId: et.eventTypeId,
-                        locationId: loc.locationId,
-                        eventCode: et.eventCode
-                    })
+
+        // Find SHIFT type first
+        const shiftType = eventTypes.find(et => et.eventCode === 'SHIFT')
+        if (shiftType) {
+            reportColumns.push({
+                id: shiftType.eventTypeId,
+                name: `Work Shift (${shiftType.eventCode})`,
+                eventTypeId: shiftType.eventTypeId,
+                locationId: null,
+                eventCode: shiftType.eventCode
+            })
+        }
+
+        // Add EVENT types split by location
+        const eventType = eventTypes.find(et => et.eventCode === 'EVENT')
+        if (eventType) {
+            locations.forEach(loc => {
+                reportColumns.push({
+                    id: `${eventType.eventTypeId}_${loc.locationId}`,
+                    name: `${loc.locationNameEn} (${eventType.eventName})`,
+                    eventTypeId: eventType.eventTypeId,
+                    locationId: loc.locationId,
+                    eventCode: eventType.eventCode
                 })
-            } else {
-                // Keep as single column
+            })
+        }
+
+        // Add HOLIDAY or other types
+        eventTypes.forEach(et => {
+            if (et.eventCode !== 'SHIFT' && et.eventCode !== 'EVENT') {
                 reportColumns.push({
                     id: et.eventTypeId,
                     name: `${et.eventName} (${et.eventCode})`,
@@ -94,18 +109,18 @@ export async function GET(req: NextRequest) {
                 const names = entry.assignments.map((a: any) => a.employee.nickName || a.employee.firstName)
                 if (names.length === 0) return
 
-                // Determine which column(s) this entry belongs to
-                if (entry.eventType.eventCode === 'EVENT' && entry.locationId) {
-                    const colId = `${entry.eventTypeId}_${entry.locationId}`
-                    if (rowData.assignments[colId]) {
-                        rowData.assignments[colId].push(...names)
+                let colId = entry.eventTypeId
+
+                // Priority: If entry has a location, find a column that is defined for this location
+                if (entry.locationId) {
+                    const locCol = reportColumns.find(col => col.locationId === entry.locationId)
+                    if (locCol) {
+                        colId = locCol.id
                     }
-                } else {
-                    // Fallback to eventTypeId (for SHIFT, HOLIDAY, etc.)
-                    const colId = entry.eventTypeId
-                    if (rowData.assignments[colId]) {
-                        rowData.assignments[colId].push(...names)
-                    }
+                }
+
+                if (rowData.assignments[colId]) {
+                    rowData.assignments[colId].push(...names)
                 }
             })
 

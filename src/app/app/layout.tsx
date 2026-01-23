@@ -65,7 +65,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             isOpen={sidebarOpen}
             onClose={() => setSidebarOpen(false)}
           />
-          <main className="flex-1 min-h-[calc(100vh-6rem)] card p-4 lg:p-6">
+          <main className="flex-1 min-w-0 min-h-[calc(100vh-6rem)] card p-4 lg:p-6 overflow-hidden">
             {children}
           </main>
         </div>

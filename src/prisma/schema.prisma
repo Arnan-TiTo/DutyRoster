@@ -111,6 +111,7 @@ model Employee {
   leaveRequests     LeaveRequest[]
   rosterAssignments RosterAssignment[]
   users             User[]
+  assignmentStats   EmployeeAssignmentStat?
 
   @@map("employees")
 }
@@ -134,6 +135,7 @@ model ShiftSlot {
   shiftSlotId   String        @id @default(uuid()) @map("shift_slot_id")
   slotCode      String?       @unique @map("slot_code")
   slotName      String        @map("slot_name")
+  locationCode  String?       @map("location_code")
   startTime     DateTime      @map("start_time") @db.Time(6)
   endTime       DateTime      @map("end_time") @db.Time(6)
   minStaff      Int           @default(0) @map("min_staff")
@@ -263,4 +265,18 @@ model Location {
   rosterEntries  RosterEntry[]
 
   @@map("locations")
+}
+
+// Employee Assignment Statistics for fair distribution across months
+model EmployeeAssignmentStat {
+  statId           String   @id @default(uuid()) @map("stat_id")
+  employeeId       String   @map("employee_id")
+  employee         Employee @relation(fields: [employeeId], references: [employeeId], onDelete: Cascade)
+  totalAssignments Int      @default(0) @map("total_assignments")
+  osAssignments    Int      @default(0) @map("os_assignments")
+  lastResetAt      DateTime @default(now()) @map("last_reset_at")
+  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@unique([employeeId])
+  @@map("employee_assignment_stats")
 }
